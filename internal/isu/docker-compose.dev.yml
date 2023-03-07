@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:15.1
+    env_file:
+      - ./.env
+    volumes:
+      - postgres:/data/postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  isu:
+    container_name: isu
+    image: isu
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ./.env
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - $PORT:$PORT
+
+volumes:
+  postgres: null
